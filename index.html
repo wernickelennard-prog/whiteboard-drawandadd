@@ -25,8 +25,11 @@
     --muted: #888;
     --yellow: #fde87a;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
-  button, a { -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: rgba(0,0,0,0) !important; -webkit-touch-callout: none; user-select: none; }
+  html { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
+  body { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
+  button, a, div, span, input, canvas, svg { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; outline: none; }
+  input, textarea { user-select: text; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
 
   /* ── TOPBAR ── */

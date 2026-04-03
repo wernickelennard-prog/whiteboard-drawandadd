@@ -461,6 +461,10 @@
   <input id="board-name" value="Unbenanntes Board" spellcheck="false" placeholder="Board-Name">
 
   <div id="topbar-right">
+    <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Installieren
+    </button>
     <!-- Haftnotiz -->
     <button class="top-btn" id="btn-sticky" onclick="addSticky()" style="display:none;background:transparent;border:none">
       + Haftnotiz
@@ -2844,6 +2848,59 @@ document.addEventListener('touchstart', e => {
   document.addEventListener('touchend', onTEnd);
 }, { passive: true });
 
+
+// ── SERVICE WORKER (PWA) ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swContent = `
+const CACHE = 'whiteboard-v1';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.add('/'))
+  );
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(self.clients.claim());
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }))
+  );
+});
+`;
+    const swBlob = new Blob([swContent], {type: 'text/javascript'});
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl)
+      .then(r => console.log('SW OK', r.scope))
+      .catch(e => console.warn('SW:', e.message));
+  });
+}
+
+// ── PWA INSTALL PROMPT ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install button
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'none';
+  deferredPrompt = null;
+});
+window.installApp = () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  }
+};
 </script>
 </body>
 </html>
